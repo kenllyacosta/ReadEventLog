@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace ReadEventLog
 {
-    internal class Program
+    internal static class Program
     {
         static void Main(string[] args)
         {
@@ -58,7 +58,7 @@ namespace ReadEventLog
                 process.StartInfo.CreateNoWindow = true;
 
                 process.Start();
-                string output = process.StandardOutput.ReadToEnd();
+                process.StandardOutput.ReadToEnd();
                 string error = process.StandardError.ReadToEnd();
                 process.WaitForExit();
 
