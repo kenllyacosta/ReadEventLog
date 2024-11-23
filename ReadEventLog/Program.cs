@@ -37,17 +37,20 @@ namespace ReadEventLog
 
         private static void AddIpToBlockedRuleFirewall(string ipAddress)
         {
-            if (string.IsNullOrEmpty(ipAddress))
+            if (string.IsNullOrEmpty(ipAddress) || !System.Net.IPAddress.TryParse(ipAddress, out _))
             {
-                WriteToLogFile($"Invalid IP address. {ipAddress}");
+                WriteToLogFile($"Invalid IP address: {ipAddress}");
                 return;
             }
 
             try
             {
+                // Specify the full path to the netsh executable
+                string netshPath = System.IO.Path.Combine(Environment.SystemDirectory, "netsh.exe");
+
                 // Create a process to run netsh command
                 Process process = new Process();
-                process.StartInfo.FileName = "netsh";
+                process.StartInfo.FileName = netshPath;
                 process.StartInfo.Arguments = $"advfirewall firewall add rule name=\"Block {ipAddress}\" dir=in action=block remoteip={ipAddress}";
                 process.StartInfo.RedirectStandardOutput = true;
                 process.StartInfo.RedirectStandardError = true;
@@ -70,6 +73,14 @@ namespace ReadEventLog
                 {
                     WriteToLogFile($"Failed to add firewall rule. Error: {error}");
                 }
+            }
+            catch (InvalidOperationException ex)
+            {
+                WriteToLogFile($"Invalid operation occurred while adding firewall rule: {ex.Message}");
+            }
+            catch (System.ComponentModel.Win32Exception ex)
+            {
+                WriteToLogFile($"Win32 exception occurred while adding firewall rule: {ex.Message}");
             }
             catch (Exception ex)
             {
